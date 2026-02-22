@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đỏ Xanh Tracker</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    max-width: 420px;
+    margin: auto;
+    padding: 12px;
+    background: #f2f2f2;
+}
+
+.section {
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 16px;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.red { color:#e60000 }
+.blue { color:#0077ff }
+
+.input-row {
+    display:flex;
+    gap:6px;
+}
+
+input {
+    flex:1;
+    padding:8px;
+    font-size:16px;
+}
+
+button {
+    padding:8px 14px;
+    font-size:16px;
+}
+
+.list {
+    margin-top:8px;
+    line-height:1.5;
+    font-size: 25px;
+}
+
+.total {
+    text-align:right;
+    font-weight:bold;
+    font-size:30px;
+    margin-top:6px;
+}
+</style>
+</head>
+<body>
+
+<div class="section">
+  <div class="title red">ĐỎ</div>
+  <div class="input-row">
+    <input id="redInput" placeholder="VD: 200/100">
+    <button onclick="addRed()">+</button>
+  </div>
+  <div id="redList" class="list"></div>
+  <div id="redTotal" class="total"></div>
+</div>
+
+<div class="section">
+  <div class="title blue">XANH</div>
+  <div class="input-row">
+    <input id="blueInput" placeholder="VD: 50/100">
+    <button onclick="addBlue()">+</button>
+  </div>
+  <div id="blueList" class="list"></div>
+  <div id="blueTotal" class="total"></div>
+</div>
+
+<script>
+let redData = JSON.parse(localStorage.getItem("redData")) || [];
+let blueData = JSON.parse(localStorage.getItem("blueData")) || [];
+
+function getVNTime(){
+  return new Date().toLocaleTimeString("vi-VN",{
+    hour:'2-digit',
+    minute:'2-digit'
+  });
+}
+
+function parse(v){
+  let p=v.split("/");
+  if(p.length!==2) return null;
+  return {a:+p[0], b:+p[1]};
+}
+
+function addRed(){
+  let val=redInput.value.trim();
+  let p=parse(val);
+  if(!p) return alert("Nhập dạng 200/100");
+
+  redData.push({raw:val,time:getVNTime()});
+  save(); render();
+  redInput.value="";
+}
+
+function addBlue(){
+  let val=blueInput.value.trim();
+  let p=parse(val);
+  if(!p) return alert("Nhập dạng 50/100");
+
+  blueData.push({raw:val,time:getVNTime()});
+  save(); render();
+  blueInput.value="";
+}
+
+function save(){
+  localStorage.setItem("redData",JSON.stringify(redData));
+  localStorage.setItem("blueData",JSON.stringify(blueData));
+}
+
+function render(){
+  let rA=0,rB=0,bA=0,bB=0;
+
+  redList.innerHTML = redData.map((e,i)=>{
+    let p=parse(e.raw);
+    rA+=p.a;
+    rB+=p.b;
+    return `${i+1}. ${e.raw} - ${e.time}`;
+  }).join("<br>");
+
+  blueList.innerHTML = blueData.map((e,i)=>{
+    let p=parse(e.raw);
+    bA+=p.a;
+    bB+=p.b;
+    return `${i+1}. ${e.raw} - ${e.time}`;
+  }).join("<br>");
+
+  redTotal.textContent = `${rA}/${rB}`;
+  blueTotal.textContent = `${bA}/${bB}`;
+}
+
+render();
+</script>
+
+</body>
+</html>
